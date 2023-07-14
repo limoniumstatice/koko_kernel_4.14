@@ -1879,7 +1879,15 @@ void incfs_kill_sb(struct super_block *sb)
 	struct mount_info *mi = sb->s_fs_info;
 
 	pr_debug("incfs: unmount\n");
-	generic_shutdown_super(sb);
+
+	/*
+	 * We must kill the super before freeing mi, since killing the super
+	 * triggers inode eviction, which triggers the final update of the
+	 * backing file, which uses certain information for mi
+	 */
+	kill_anon_super(sb);
+
+        generic_shutdown_super(sb);
 	incfs_free_mount_info(mi);
 }
 
